@@ -75,7 +75,7 @@ fn ui_builder() -> impl Widget<()> {
             .join(", ");
         flex = flex.with_flex_child(
             Button::new(label)
-                .on_click(move |_ctx, _data, _env| {
+                .on_click(move |ctx, _data, _env| {
                     for (setting, (display, active)) in settings
                         .iter()
                         .map(|x| Some(x))
@@ -111,6 +111,7 @@ fn ui_builder() -> impl Widget<()> {
                     if let Err(err) = apply_display_settings() {
                         log::error!("final error: {}", err);
                     }
+                    ctx.window().close();
                 })
                 .expand()
                 .padding(5.0),
