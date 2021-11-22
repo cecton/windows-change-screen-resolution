@@ -29,12 +29,13 @@ use winapi::um::winuser::{CDS_FULLSCREEN, CDS_NORESET, CDS_UPDATEREGISTRY};
 use druid::widget::{Button, Flex};
 use druid::{AppLauncher, PlatformError, Widget, WidgetExt, WindowDesc};
 
-const RESOLUTIONS: &[&[(u32, u32, u32, (i32, i32), Orientation)]] = &[
-    &[(3440, 1440, 100, (0, 0), Orientation::Zero)],
-    &[(3440, 1440, 60, (0, 0), Orientation::Zero)],
-    &[(2560, 1440, 100, (0, 0), Orientation::Zero)],
-    &[(2560, 1440, 60, (0, 0), Orientation::Zero)],
-    &[(3840, 2160, 60, (0, 0), Orientation::Zero)],
+const RESOLUTIONS: &[&[Option<(u32, u32, u32, (i32, i32), Orientation)>]] = &[
+    &[Some((3440, 1440, 100, (0, 0), Orientation::Zero))],
+    &[Some((3440, 1440, 60, (0, 0), Orientation::Zero))],
+    &[Some((2560, 1440, 100, (0, 0), Orientation::Zero))],
+    &[Some((2560, 1440, 60, (0, 0), Orientation::Zero))],
+    &[Some((3840, 2160, 60, (0, 0), Orientation::Zero))],
+    &[None, Some((3840, 2160, 60, (0, 0), Orientation::Zero))],
 ];
 
 fn main() -> Result<(), PlatformError> {
@@ -66,11 +67,12 @@ fn ui_builder() -> impl Widget<()> {
     for settings in RESOLUTIONS {
         let label = settings
             .iter()
-            .map(|(width, height, frequency, (x, y), orientation)| {
-                format!(
+            .map(|res| match res {
+                Some((width, height, frequency, (x, y), orientation)) => format!(
                     "{}x{}@{}Hz{:+}px{:+}px{}deg",
                     width, height, frequency, x, y, orientation
-                )
+                ),
+                None => "Off".to_string(),
             })
             .join(", ");
         flex = flex.with_flex_child(
@@ -82,7 +84,7 @@ fn ui_builder() -> impl Widget<()> {
                         .chain(iter::repeat(None))
                         .zip(list_devices().unwrap_or_default().into_iter())
                     {
-                        if let Some((width, height, frequency, position, orientation)) =
+                        if let Some(Some((width, height, frequency, position, orientation))) =
                             setting.as_deref()
                         {
                             if let Err(err) = change_display_settings(
